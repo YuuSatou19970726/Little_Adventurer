@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Character : MonoBehaviour
 {
@@ -17,11 +18,28 @@ public class Character : MonoBehaviour
 
     private Animator _animator;
 
+    [SerializeField]
+    private bool isPlayer = true;
+
+    private NavMeshAgent _navMeshAgent;
+    private Transform targetPlayer;
+
     void Awake()
     {
         _characterController = GetComponent<CharacterController>();
-        _playerInput = GetComponent<PlayerInput>();
+
         _animator = GetComponent<Animator>();
+
+        if (!isPlayer)
+        {
+            _navMeshAgent = GetComponent<NavMeshAgent>();
+            targetPlayer = GameObject.FindWithTag(Tags.PLAYER).transform;
+            _navMeshAgent.speed = moveSpeed;
+        }
+        else
+        {
+            _playerInput = GetComponent<PlayerInput>();
+        }
     }
 
     void CalculatePlayerMovement()
@@ -40,17 +58,37 @@ public class Character : MonoBehaviour
         _animator.SetBool(AnimationTags.AIRBORNE_BOLEAN, !_characterController.isGrounded);
     }
 
+    void CalculateEnemyMovement()
+    {
+        if (Vector3.Distance(targetPlayer.position, transform.position) >= _navMeshAgent.stoppingDistance)
+        {
+            _navMeshAgent.SetDestination(targetPlayer.position);
+            _animator.SetFloat(AnimationTags.SPEED_FLOAT, 0.2f);
+        }
+        else
+        {
+            _navMeshAgent.SetDestination(transform.position);
+            _animator.SetFloat(AnimationTags.SPEED_FLOAT, 0f);
+        }
+    }
+
     void FixedUpdate()
     {
-        CalculatePlayerMovement();
-
-        if (_characterController.isGrounded == false)
-            _verticalVelocity = Gravity;
+        if (isPlayer)
+            CalculatePlayerMovement();
         else
-            _verticalVelocity = Gravity * 0.3f;
+            CalculateEnemyMovement();
 
-        _movementVelocity += _verticalVelocity * Vector3.up * Time.deltaTime;
+        if (isPlayer)
+        {
+            if (_characterController.isGrounded == false)
+                _verticalVelocity = Gravity;
+            else
+                _verticalVelocity = Gravity * 0.3f;
 
-        _characterController.Move(_movementVelocity);
+            _movementVelocity += _verticalVelocity * Vector3.up * Time.deltaTime;
+
+            _characterController.Move(_movementVelocity);
+        }
     }
 }
