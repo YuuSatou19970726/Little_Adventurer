@@ -18,11 +18,26 @@ public class Character : MonoBehaviour
 
     private Animator _animator;
 
+
+    //enemy
     [SerializeField]
     private bool isPlayer = true;
 
     private NavMeshAgent _navMeshAgent;
     private Transform targetPlayer;
+
+    //state machine
+    public enum CharacterState
+    {
+        NORMAL,
+        ATTACKING
+    }
+    public CharacterState currentState;
+
+    //player slides
+    private float attackStartTime;
+    private float attackSlideDuration = 0.4f;
+    private float attackSlideSpeed = 1.5f;
 
     void Awake()
     {
@@ -44,6 +59,12 @@ public class Character : MonoBehaviour
 
     void CalculatePlayerMovement()
     {
+        if (_playerInput.MouseButtonDown && _characterController.isGrounded)
+        {
+            SwitchStateTo(CharacterState.ATTACKING);
+            return;
+        }
+
         _movementVelocity.Set(_playerInput.horizontalInput, 0f, _playerInput.verticalInput);
         _movementVelocity.Normalize();
         _movementVelocity = Quaternion.Euler(0, -45f, 0) * _movementVelocity;
@@ -74,10 +95,28 @@ public class Character : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (isPlayer)
-            CalculatePlayerMovement();
-        else
-            CalculateEnemyMovement();
+        switch (currentState)
+        {
+            case CharacterState.NORMAL:
+                if (isPlayer)
+                    CalculatePlayerMovement();
+                else
+                    CalculateEnemyMovement();
+                break;
+            case CharacterState.ATTACKING:
+                if (isPlayer)
+                {
+                    _movementVelocity = Vector3.zero;
+
+                    if (Time.time < attackStartTime + attackSlideDuration)
+                    {
+                        float timePassed = Time.time - attackStartTime;
+                        float lerpTime = timePassed / attackSlideDuration;
+                        _movementVelocity = Vector3.Lerp(transform.forward * attackSlideSpeed, Vector3.zero, lerpTime);
+                    }
+                }
+                break;
+        }
 
         if (isPlayer)
         {
@@ -90,5 +129,39 @@ public class Character : MonoBehaviour
 
             _characterController.Move(_movementVelocity);
         }
+    }
+
+    private void SwitchStateTo(CharacterState characterState)
+    {
+        //clear cache
+        _playerInput.MouseButtonDown = false;
+
+        //exiting state
+        switch (currentState)
+        {
+            case CharacterState.NORMAL:
+                break;
+            case CharacterState.ATTACKING:
+                break;
+        }
+
+        //entering state
+        switch (characterState)
+        {
+            case CharacterState.NORMAL:
+                break;
+            case CharacterState.ATTACKING:
+                _animator.SetTrigger(AnimationTags.ATTACK_TRIGGER);
+                if (isPlayer)
+                    attackStartTime = Time.time;
+                break;
+        }
+
+        currentState = characterState;
+    }
+
+    void AttackAnimationEnds()
+    {
+        SwitchStateTo(CharacterState.NORMAL);
     }
 }

@@ -8,6 +8,7 @@ public class AnimationTags
 {
     public const string SPEED_FLOAT = "Speed";
     public const string AIRBORNE_BOLEAN = "AirBorne";
+    public const string ATTACK_TRIGGER = "Attack";
 }
 
 public class Tags
