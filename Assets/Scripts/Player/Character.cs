@@ -90,6 +90,8 @@ public class Character : MonoBehaviour
         {
             _navMeshAgent.SetDestination(transform.position);
             _animator.SetFloat(AnimationTags.SPEED_FLOAT, 0f);
+
+            SwitchStateTo(CharacterState.ATTACKING);
         }
     }
 
@@ -134,7 +136,8 @@ public class Character : MonoBehaviour
     private void SwitchStateTo(CharacterState characterState)
     {
         //clear cache
-        _playerInput.MouseButtonDown = false;
+        if (isPlayer)
+            _playerInput.MouseButtonDown = false;
 
         //exiting state
         switch (currentState)
@@ -151,6 +154,12 @@ public class Character : MonoBehaviour
             case CharacterState.NORMAL:
                 break;
             case CharacterState.ATTACKING:
+                if (!isPlayer)
+                {
+                    Quaternion newRotation = Quaternion.LookRotation(targetPlayer.position - transform.position);
+                    transform.rotation = newRotation;
+                }
+
                 _animator.SetTrigger(AnimationTags.ATTACK_TRIGGER);
                 if (isPlayer)
                     attackStartTime = Time.time;
@@ -161,6 +170,11 @@ public class Character : MonoBehaviour
     }
 
     void AttackAnimationEnds()
+    {
+        SwitchStateTo(CharacterState.NORMAL);
+    }
+
+    void AttackAnimationEvent()
     {
         SwitchStateTo(CharacterState.NORMAL);
     }
