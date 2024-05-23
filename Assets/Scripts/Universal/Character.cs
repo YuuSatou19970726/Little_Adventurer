@@ -18,7 +18,6 @@ public class Character : MonoBehaviour
 
     private Animator _animator;
 
-
     //enemy
     [SerializeField]
     private bool isPlayer = true;
@@ -39,9 +38,17 @@ public class Character : MonoBehaviour
     private float attackSlideDuration = 0.4f;
     private float attackSlideSpeed = 1.5f;
 
+    //health
+    private Health _health;
+
+    //damage caster
+    private DamageCaster _damageCaster;
+
     void Awake()
     {
         _characterController = GetComponent<CharacterController>();
+        _health = GetComponent<Health>();
+        _damageCaster = GetComponentInChildren<DamageCaster>();
 
         _animator = GetComponent<Animator>();
 
@@ -110,12 +117,12 @@ public class Character : MonoBehaviour
                 {
                     _movementVelocity = Vector3.zero;
 
-                    if (Time.time < attackStartTime + attackSlideDuration)
-                    {
-                        float timePassed = Time.time - attackStartTime;
-                        float lerpTime = timePassed / attackSlideDuration;
-                        _movementVelocity = Vector3.Lerp(transform.forward * attackSlideSpeed, Vector3.zero, lerpTime);
-                    }
+                    // if (Time.time < attackStartTime + attackSlideDuration)
+                    // {
+                    //     float timePassed = Time.time - attackStartTime;
+                    //     float lerpTime = timePassed / attackSlideDuration;
+                    //     _movementVelocity = Vector3.Lerp(transform.forward * attackSlideSpeed, Vector3.zero, lerpTime);
+                    // }
                 }
                 break;
         }
@@ -174,8 +181,21 @@ public class Character : MonoBehaviour
         SwitchStateTo(CharacterState.NORMAL);
     }
 
-    void AttackAnimationEvent()
+    public void ApplyDamage(int damage, Vector3 attackerPos = new Vector3())
     {
-        SwitchStateTo(CharacterState.NORMAL);
+        if (_health != null)
+        {
+            _health.ApplyDamage(damage);
+        }
+    }
+
+    public void EnableDamageCaster()
+    {
+        _damageCaster.EnableDamageCaster();
+    }
+
+    public void DisableDamageCaster()
+    {
+        _damageCaster.DisableDamageCaster();
     }
 }
