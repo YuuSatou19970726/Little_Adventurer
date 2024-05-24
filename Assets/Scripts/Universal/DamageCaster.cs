@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using UnityEngine;
 
 public class DamageCaster : MonoBehaviour
@@ -26,7 +27,26 @@ public class DamageCaster : MonoBehaviour
 
             if (targetCharacter != null)
             {
-                targetCharacter.ApplyDamage(Damage);
+                targetCharacter.ApplyDamage(Damage, transform.parent.position);
+
+                PlayerVFXManager playerVFXManager = transform.parent.GetComponent<PlayerVFXManager>();
+
+                if (playerVFXManager != null)
+                {
+                    if (_damageCasterCollider == null)
+                        _damageCasterCollider = GetComponent<Collider>();
+
+                    RaycastHit hit;
+
+                    Vector3 originalPos = transform.position + (-_damageCasterCollider.bounds.extents.z) * transform.forward;
+                    bool isHit = Physics.BoxCast(originalPos, _damageCasterCollider.bounds.extents / 2, transform.forward,
+                    out hit, transform.rotation, _damageCasterCollider.bounds.extents.z, 1 << 6);
+
+                    if (isHit)
+                    {
+                        playerVFXManager.PlaySlash(hit.point + new Vector3(0, 0.5f, 0));
+                    }
+                }
             }
 
             _damagedTargetList.Add(other);
@@ -44,4 +64,22 @@ public class DamageCaster : MonoBehaviour
         _damagedTargetList.Clear();
         _damageCasterCollider.enabled = false;
     }
+
+    // void OnDrawGizmos()
+    // {
+    //     if (_damageCasterCollider == null)
+    //         _damageCasterCollider = GetComponent<Collider>();
+
+    //     RaycastHit hit;
+
+    //     Vector3 originalPos = transform.position + (-_damageCasterCollider.bounds.extents.z) * transform.forward;
+    //     bool isHit = Physics.BoxCast(originalPos, _damageCasterCollider.bounds.extents / 2, transform.forward,
+    //     out hit, transform.rotation, _damageCasterCollider.bounds.extents.z, 1 << 6);
+
+    //     if (isHit)
+    //     {
+    //         Gizmos.color = Color.yellow;
+    //         Gizmos.DrawWireSphere(hit.point, 0.3f);
+    //     }
+    // }
 }

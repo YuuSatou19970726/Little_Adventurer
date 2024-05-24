@@ -44,6 +44,10 @@ public class Character : MonoBehaviour
     //damage caster
     private DamageCaster _damageCaster;
 
+    //material animation
+    private MaterialPropertyBlock _materialPropertyBlock;
+    private SkinnedMeshRenderer _skinnedMeshRenderer;
+
     void Awake()
     {
         _characterController = GetComponent<CharacterController>();
@@ -57,6 +61,10 @@ public class Character : MonoBehaviour
             _navMeshAgent = GetComponent<NavMeshAgent>();
             targetPlayer = GameObject.FindWithTag(Tags.PLAYER).transform;
             _navMeshAgent.speed = moveSpeed;
+
+            _skinnedMeshRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
+            _materialPropertyBlock = new MaterialPropertyBlock();
+            _skinnedMeshRenderer.GetPropertyBlock(_materialPropertyBlock);
         }
         else
         {
@@ -152,6 +160,8 @@ public class Character : MonoBehaviour
             case CharacterState.NORMAL:
                 break;
             case CharacterState.ATTACKING:
+                if (_damageCaster != null)
+                    DisableDamageCaster();
                 break;
         }
 
@@ -187,6 +197,12 @@ public class Character : MonoBehaviour
         {
             _health.ApplyDamage(damage);
         }
+
+        if (!isPlayer)
+        {
+            GetComponent<EnemyVFXManager>().PlayBeingHitVFX(attackerPos);
+            StartCoroutine(MaterialBlink());
+        }
     }
 
     public void EnableDamageCaster()
@@ -197,5 +213,16 @@ public class Character : MonoBehaviour
     public void DisableDamageCaster()
     {
         _damageCaster.DisableDamageCaster();
+    }
+
+    IEnumerator MaterialBlink()
+    {
+        _materialPropertyBlock.SetFloat("_blink", 0.4f);
+        _skinnedMeshRenderer.SetPropertyBlock(_materialPropertyBlock);
+
+        yield return new WaitForSeconds(0.2f);
+
+        _materialPropertyBlock.SetFloat("_blink", 0f);
+        _skinnedMeshRenderer.SetPropertyBlock(_materialPropertyBlock);
     }
 }
