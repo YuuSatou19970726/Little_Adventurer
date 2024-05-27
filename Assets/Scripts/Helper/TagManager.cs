@@ -10,6 +10,7 @@ public class AnimationTags
     public const string AIRBORNE_BOLEAN = "AirBorne";
     public const string ATTACK_TRIGGER = "Attack";
     public const string DEAD_TRIGGER = "Dead";
+    public const string BEING_HIT_TRIGGER = "BeingHit";
 }
 
 public class Tags

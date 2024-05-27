@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Timeline;
 
 public class Character : MonoBehaviour
 {
@@ -30,14 +32,15 @@ public class Character : MonoBehaviour
     {
         NORMAL,
         ATTACKING,
-        DEAD
+        DEAD,
+        BEINGHIT
     }
     public CharacterState currentState;
 
     //player slides
     private float attackStartTime;
     private float attackSlideDuration = 0.4f;
-    private float attackSlideSpeed = 1.5f;
+    private float attackSlideSpeed = 0.5f;
 
     //health
     private Health _health;
@@ -52,6 +55,10 @@ public class Character : MonoBehaviour
     [SerializeField]
     private GameObject ItemToDrop;
 
+    private Vector3 impactOnCharacter;
+    private bool IsInvincible;
+    private float invincibleDuration = 2f;
+
     void Awake()
     {
         _characterController = GetComponent<CharacterController>();
@@ -60,15 +67,15 @@ public class Character : MonoBehaviour
 
         _animator = GetComponent<Animator>();
 
+        _skinnedMeshRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
+        _materialPropertyBlock = new MaterialPropertyBlock();
+        _skinnedMeshRenderer.GetPropertyBlock(_materialPropertyBlock);
+
         if (!isPlayer)
         {
             _navMeshAgent = GetComponent<NavMeshAgent>();
             targetPlayer = GameObject.FindWithTag(Tags.PLAYER).transform;
             _navMeshAgent.speed = moveSpeed;
-
-            _skinnedMeshRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
-            _materialPropertyBlock = new MaterialPropertyBlock();
-            _skinnedMeshRenderer.GetPropertyBlock(_materialPropertyBlock);
         }
         else
         {
@@ -127,18 +134,24 @@ public class Character : MonoBehaviour
             case CharacterState.ATTACKING:
                 if (isPlayer)
                 {
-                    _movementVelocity = Vector3.zero;
+                    // _movementVelocity = Vector3.zero;
 
-                    // if (Time.time < attackStartTime + attackSlideDuration)
-                    // {
-                    //     float timePassed = Time.time - attackStartTime;
-                    //     float lerpTime = timePassed / attackSlideDuration;
-                    //     _movementVelocity = Vector3.Lerp(transform.forward * attackSlideSpeed, Vector3.zero, lerpTime);
-                    // }
+                    if (Time.time < attackStartTime + attackSlideDuration)
+                    {
+                        float timePassed = Time.time - attackStartTime;
+                        float lerpTime = timePassed / attackSlideDuration;
+                        _movementVelocity = Vector3.Lerp(transform.forward * attackSlideSpeed, Vector3.zero, lerpTime);
+                    }
                 }
                 break;
             case CharacterState.DEAD:
                 return;
+            case CharacterState.BEINGHIT:
+                if (impactOnCharacter.magnitude > 0.2f)
+                    _movementVelocity = impactOnCharacter * Time.deltaTime;
+
+                impactOnCharacter = Vector3.Lerp(impactOnCharacter, Vector3.zero, Time.deltaTime * 5);
+                break;
         }
 
         if (isPlayer)
@@ -151,6 +164,7 @@ public class Character : MonoBehaviour
             _movementVelocity += _verticalVelocity * Vector3.up * Time.deltaTime;
 
             _characterController.Move(_movementVelocity);
+            _movementVelocity = Vector3.zero;
         }
     }
 
@@ -171,6 +185,8 @@ public class Character : MonoBehaviour
                 break;
             case CharacterState.DEAD:
                 return;
+            case CharacterState.BEINGHIT:
+                break;
         }
 
         //entering state
@@ -194,6 +210,15 @@ public class Character : MonoBehaviour
                 _animator.SetTrigger(AnimationTags.DEAD_TRIGGER);
                 StartCoroutine(MaterialDissolve());
                 break;
+            case CharacterState.BEINGHIT:
+                _animator.SetTrigger(AnimationTags.BEING_HIT_TRIGGER);
+
+                if (isPlayer)
+                {
+                    IsInvincible = true;
+                    StartCoroutine(DelayCancelInvincible());
+                }
+                break;
         }
 
         currentState = characterState;
@@ -204,8 +229,16 @@ public class Character : MonoBehaviour
         SwitchStateTo(CharacterState.NORMAL);
     }
 
+    void BeingHitAnimationEnds()
+    {
+        SwitchStateTo(CharacterState.NORMAL);
+    }
+
     public void ApplyDamage(int damage, Vector3 attackerPos = new Vector3())
     {
+        if (IsInvincible)
+            return;
+
         if (_health != null)
         {
             _health.ApplyDamage(damage);
@@ -214,8 +247,29 @@ public class Character : MonoBehaviour
         if (!isPlayer)
         {
             GetComponent<EnemyVFXManager>().PlayBeingHitVFX(attackerPos);
-            StartCoroutine(MaterialBlink());
         }
+
+        StartCoroutine(MaterialBlink());
+
+        if (isPlayer)
+        {
+            SwitchStateTo(CharacterState.BEINGHIT);
+            AddImpact(attackerPos, 10f);
+        }
+    }
+
+    IEnumerator DelayCancelInvincible()
+    {
+        yield return new WaitForSeconds(invincibleDuration);
+        IsInvincible = false;
+    }
+
+    private void AddImpact(Vector3 attackerPos, float force)
+    {
+        Vector3 impactDir = transform.position - attackerPos;
+        impactDir.Normalize();
+        impactDir.y = 0;
+        impactOnCharacter = impactDir * force;
     }
 
     public void EnableDamageCaster()
@@ -249,16 +303,19 @@ public class Character : MonoBehaviour
         float dissolveHeight_target = -10f;
         float dissolveHeight;
 
-        _materialPropertyBlock.SetFloat("_enableDissolve", 1f);
-        _skinnedMeshRenderer.SetPropertyBlock(_materialPropertyBlock);
-
-        while (currentDissolveTime < dissolveTimeDuration)
+        if (_materialPropertyBlock != null)
         {
-            currentDissolveTime += Time.deltaTime;
-            dissolveHeight = Mathf.Lerp(dissolveHeight_start, dissolveHeight_target, currentDissolveTime / dissolveTimeDuration);
-            _materialPropertyBlock.SetFloat("_dissolve_height", dissolveHeight);
+            _materialPropertyBlock.SetFloat("_enableDissolve", 1f);
             _skinnedMeshRenderer.SetPropertyBlock(_materialPropertyBlock);
-            yield return null;
+
+            while (currentDissolveTime < dissolveTimeDuration)
+            {
+                currentDissolveTime += Time.deltaTime;
+                dissolveHeight = Mathf.Lerp(dissolveHeight_start, dissolveHeight_target, currentDissolveTime / dissolveTimeDuration);
+                _materialPropertyBlock.SetFloat("_dissolve_height", dissolveHeight);
+                _skinnedMeshRenderer.SetPropertyBlock(_materialPropertyBlock);
+                yield return null;
+            }
         }
 
         DropItem();
