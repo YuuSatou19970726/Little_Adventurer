@@ -20,6 +20,8 @@ public class Character : MonoBehaviour
 
     private Animator _animator;
 
+    private int Coin;
+
     //enemy
     [SerializeField]
     private bool isPlayer = true;
@@ -325,5 +327,29 @@ public class Character : MonoBehaviour
     {
         if (ItemToDrop != null)
             Instantiate(ItemToDrop, transform.position, Quaternion.identity);
+    }
+
+    public void PickUpItem(PickUp item)
+    {
+        switch (item.Type)
+        {
+            case PickUp.PickUpType.HEAL:
+                AddHealth(item.value);
+                break;
+            case PickUp.PickUpType.COIN:
+                AddCoin(item.value);
+                break;
+        }
+    }
+
+    private void AddHealth(int health)
+    {
+        _health.AddHealth(health);
+        GetComponent<PlayerVFXManager>().PlayHealth();
+    }
+
+    private void AddCoin(int coint)
+    {
+        Coin += coint;
     }
 }

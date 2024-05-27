@@ -14,6 +14,9 @@ public class PlayerVFXManager : MonoBehaviour
     [SerializeField]
     private VisualEffect slash;
 
+    [SerializeField]
+    private VisualEffect health;
+
     public void Update_FootStep(bool state)
     {
         if (state)
@@ -31,5 +34,10 @@ public class PlayerVFXManager : MonoBehaviour
     {
         slash.transform.position = pos;
         slash.Play();
+    }
+
+    public void PlayHealth()
+    {
+        health.Play();
     }
 }
