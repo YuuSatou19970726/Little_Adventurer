@@ -866,6 +866,7 @@ MonoBehaviour:
   Gravity: -20
   isPlayer: 1
   currentState: 0
+  ItemToDrop: {fileID: 0}
 --- !u!114 &344253091
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2579,7 +2580,6 @@ Transform:
   - {fileID: 152070748}
   - {fileID: 1269492154}
   - {fileID: 943517339}
-  - {fileID: 1795426814}
   m_Father: {fileID: 543450651980679932}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1487217201
@@ -2706,6 +2706,7 @@ MonoBehaviour:
   Gravity: -9.8
   isPlayer: 0
   currentState: 0
+  ItemToDrop: {fileID: 8883432567488814169, guid: 1c6bb9c1fdfe09c47888215c7b42fd8b, type: 3}
 --- !u!195 &1513154514
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -2743,6 +2744,7 @@ MonoBehaviour:
   FootStep: {fileID: 152070746}
   AttackVFX: {fileID: 1269492155}
   BeingHitVFX: {fileID: 943517340}
+  BeingHitSplashVFX: {fileID: 5091917010390914819, guid: d1fe802ee7b6fc24497016910b9375d6, type: 3}
 --- !u!114 &1513154516
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2924,68 +2926,6 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 0
---- !u!1001 &1795426813
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 1457631103}
-    m_Modifications:
-    - target: {fileID: 5091917010390914829, guid: d1fe802ee7b6fc24497016910b9375d6, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5091917010390914829, guid: d1fe802ee7b6fc24497016910b9375d6, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 5091917010390914829, guid: d1fe802ee7b6fc24497016910b9375d6, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5091917010390914829, guid: d1fe802ee7b6fc24497016910b9375d6, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5091917010390914829, guid: d1fe802ee7b6fc24497016910b9375d6, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5091917010390914829, guid: d1fe802ee7b6fc24497016910b9375d6, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5091917010390914829, guid: d1fe802ee7b6fc24497016910b9375d6, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5091917010390914829, guid: d1fe802ee7b6fc24497016910b9375d6, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5091917010390914829, guid: d1fe802ee7b6fc24497016910b9375d6, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5091917010390914829, guid: d1fe802ee7b6fc24497016910b9375d6, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5091917010390914830, guid: d1fe802ee7b6fc24497016910b9375d6, type: 3}
-      propertyPath: m_Name
-      value: VFX Splash
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: d1fe802ee7b6fc24497016910b9375d6, type: 3}
---- !u!4 &1795426814 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5091917010390914829, guid: d1fe802ee7b6fc24497016910b9375d6, type: 3}
-  m_PrefabInstance: {fileID: 1795426813}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1803285092
 MonoBehaviour:
   m_ObjectHideFlags: 0
