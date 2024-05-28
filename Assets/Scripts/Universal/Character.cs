@@ -61,6 +61,8 @@ public class Character : MonoBehaviour
     private bool IsInvincible;
     private float invincibleDuration = 2f;
 
+    public float attackAnimationDuration;
+
     void Awake()
     {
         _characterController = GetComponent<CharacterController>();
@@ -144,6 +146,20 @@ public class Character : MonoBehaviour
                         float lerpTime = timePassed / attackSlideDuration;
                         _movementVelocity = Vector3.Lerp(transform.forward * attackSlideSpeed, Vector3.zero, lerpTime);
                     }
+
+                    if (_playerInput.MouseButtonDown && _characterController.isGrounded)
+                    {
+                        string currentClipName = _animator.GetCurrentAnimatorClipInfo(0)[0].clip.name;
+                        attackAnimationDuration = _animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+
+                        if (currentClipName != AnimationTags.PLAYER_ATTACK_03 && attackAnimationDuration > 0.5f
+                        && attackAnimationDuration < 0.7f)
+                        {
+                            _playerInput.MouseButtonDown = false;
+                            SwitchStateTo(CharacterState.ATTACKING);
+                            CalculatePlayerMovement();
+                        }
+                    }
                 }
                 break;
             case CharacterState.DEAD:
@@ -184,6 +200,9 @@ public class Character : MonoBehaviour
             case CharacterState.ATTACKING:
                 if (_damageCaster != null)
                     DisableDamageCaster();
+
+                if (isPlayer)
+                    GetComponent<PlayerVFXManager>().StopBlade();
                 break;
             case CharacterState.DEAD:
                 return;
