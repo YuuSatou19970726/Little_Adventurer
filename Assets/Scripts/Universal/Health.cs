@@ -17,8 +17,8 @@ public class Health : MonoBehaviour
     public void ApplyDamage(int damage)
     {
         CurrentHealth -= damage;
-        Debug.Log(gameObject.name + " took damage: " + damage);
-        Debug.Log(gameObject + " currentHealth: " + CurrentHealth);
+        // Debug.Log(gameObject.name + " took damage: " + damage);
+        // Debug.Log(gameObject + " currentHealth: " + CurrentHealth);
 
         CheckHealth();
     }

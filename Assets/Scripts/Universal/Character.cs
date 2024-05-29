@@ -23,8 +23,7 @@ public class Character : MonoBehaviour
     private int Coin;
 
     //enemy
-    [SerializeField]
-    private bool isPlayer = true;
+    public bool isPlayer = true;
 
     private NavMeshAgent _navMeshAgent;
     private Transform targetPlayer;
@@ -35,7 +34,8 @@ public class Character : MonoBehaviour
         NORMAL,
         ATTACKING,
         DEAD,
-        BEINGHIT
+        BEINGHIT,
+        SLIDE
     }
     public CharacterState currentState;
 
@@ -62,6 +62,7 @@ public class Character : MonoBehaviour
     private float invincibleDuration = 2f;
 
     public float attackAnimationDuration;
+    public float SlideSpeed = 9f;
 
     void Awake()
     {
@@ -92,6 +93,11 @@ public class Character : MonoBehaviour
         if (_playerInput.MouseButtonDown && _characterController.isGrounded)
         {
             SwitchStateTo(CharacterState.ATTACKING);
+            return;
+        }
+        else if (_playerInput.SpaceKeyDown && _characterController.isGrounded)
+        {
+            SwitchStateTo(CharacterState.SLIDE);
             return;
         }
 
@@ -170,6 +176,9 @@ public class Character : MonoBehaviour
 
                 impactOnCharacter = Vector3.Lerp(impactOnCharacter, Vector3.zero, Time.deltaTime * 5);
                 break;
+            case CharacterState.SLIDE:
+                _movementVelocity = transform.forward * SlideSpeed * Time.deltaTime;
+                break;
         }
 
         if (isPlayer)
@@ -190,7 +199,7 @@ public class Character : MonoBehaviour
     {
         //clear cache
         if (isPlayer)
-            _playerInput.MouseButtonDown = false;
+            _playerInput.ClearCache();
 
         //exiting state
         switch (currentState)
@@ -207,6 +216,8 @@ public class Character : MonoBehaviour
             case CharacterState.DEAD:
                 return;
             case CharacterState.BEINGHIT:
+                break;
+            case CharacterState.SLIDE:
                 break;
         }
 
@@ -240,9 +251,17 @@ public class Character : MonoBehaviour
                     StartCoroutine(DelayCancelInvincible());
                 }
                 break;
+            case CharacterState.SLIDE:
+                _animator.SetTrigger(AnimationTags.SLIDE_TRIGGER);
+                break;
         }
 
         currentState = characterState;
+    }
+
+    void SlideAnimationEnds()
+    {
+        SwitchStateTo(CharacterState.NORMAL);
     }
 
     void AttackAnimationEnds()
@@ -370,5 +389,13 @@ public class Character : MonoBehaviour
     private void AddCoin(int coint)
     {
         Coin += coint;
+    }
+
+    public void RotationToTaget()
+    {
+        if (currentState != CharacterState.DEAD)
+        {
+            transform.LookAt(targetPlayer, Vector3.up);
+        }
     }
 }

@@ -11,6 +11,7 @@ public class AnimationTags
     public const string ATTACK_TRIGGER = "Attack";
     public const string DEAD_TRIGGER = "Dead";
     public const string BEING_HIT_TRIGGER = "BeingHit";
+    public const string SLIDE_TRIGGER = "Slide";
 
     //Player
     public const string PLAYER_ATTACK_01 = "LittleAdventurerAndie_ATTACK_01";
