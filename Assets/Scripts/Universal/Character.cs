@@ -35,7 +35,8 @@ public class Character : MonoBehaviour
         ATTACKING,
         DEAD,
         BEINGHIT,
-        SLIDE
+        SLIDE,
+        SPAWN
     }
     public CharacterState currentState;
 
@@ -64,6 +65,12 @@ public class Character : MonoBehaviour
     public float attackAnimationDuration;
     public float SlideSpeed = 9f;
 
+    [HideInInspector]
+    public float SpawnDuration = 2f;
+
+    private float currentSpawnTime;
+
+
     void Awake()
     {
         _characterController = GetComponent<CharacterController>();
@@ -81,6 +88,7 @@ public class Character : MonoBehaviour
             _navMeshAgent = GetComponent<NavMeshAgent>();
             targetPlayer = GameObject.FindWithTag(Tags.PLAYER).transform;
             _navMeshAgent.speed = moveSpeed;
+            SwitchStateTo(CharacterState.SPAWN);
         }
         else
         {
@@ -179,6 +187,13 @@ public class Character : MonoBehaviour
             case CharacterState.SLIDE:
                 _movementVelocity = transform.forward * SlideSpeed * Time.deltaTime;
                 break;
+            case CharacterState.SPAWN:
+                currentSpawnTime -= Time.deltaTime;
+                if (currentSpawnTime <= 0)
+                {
+                    SwitchStateTo(CharacterState.NORMAL);
+                }
+                break;
         }
 
         if (isPlayer)
@@ -219,6 +234,9 @@ public class Character : MonoBehaviour
                 break;
             case CharacterState.SLIDE:
                 break;
+            case CharacterState.SPAWN:
+                IsInvincible = false;
+                break;
         }
 
         //entering state
@@ -253,6 +271,11 @@ public class Character : MonoBehaviour
                 break;
             case CharacterState.SLIDE:
                 _animator.SetTrigger(AnimationTags.SLIDE_TRIGGER);
+                break;
+            case CharacterState.SPAWN:
+                IsInvincible = true;
+                currentSpawnTime = SpawnDuration;
+                StartCoroutine(MaterialAppear());
                 break;
         }
 
@@ -397,5 +420,29 @@ public class Character : MonoBehaviour
         {
             transform.LookAt(targetPlayer, Vector3.up);
         }
+    }
+
+    IEnumerator MaterialAppear()
+    {
+        float dissolveTimeDuration = SpawnDuration;
+        float currentDissolveTime = 0;
+        float dissolveHeight_start = -10f;
+        float dissolveHeight_target = 20;
+        float dissolveHeight;
+
+        _materialPropertyBlock.SetFloat("_enableDissolve", 1f);
+        _skinnedMeshRenderer.SetPropertyBlock(_materialPropertyBlock);
+
+        while (currentDissolveTime < dissolveTimeDuration)
+        {
+            currentDissolveTime += Time.deltaTime;
+            dissolveHeight = Mathf.Lerp(dissolveHeight_start, dissolveHeight_target, currentDissolveTime / dissolveTimeDuration);
+            _materialPropertyBlock.SetFloat("_dissolve_height", dissolveHeight);
+            _skinnedMeshRenderer.SetPropertyBlock(_materialPropertyBlock);
+            yield return null;
+        }
+
+        _materialPropertyBlock.SetFloat("_enableDissolve", 0f);
+        _skinnedMeshRenderer.SetPropertyBlock(_materialPropertyBlock);
     }
 }
