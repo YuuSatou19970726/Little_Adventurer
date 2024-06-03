@@ -154,12 +154,12 @@ public class Character : MonoBehaviour
                 {
                     // _movementVelocity = Vector3.zero;
 
-                    if (Time.time < attackStartTime + attackSlideDuration)
-                    {
-                        float timePassed = Time.time - attackStartTime;
-                        float lerpTime = timePassed / attackSlideDuration;
-                        _movementVelocity = Vector3.Lerp(transform.forward * attackSlideSpeed, Vector3.zero, lerpTime);
-                    }
+                    // if (Time.time < attackStartTime + attackSlideDuration)
+                    // {
+                    //     float timePassed = Time.time - attackStartTime;
+                    //     float lerpTime = timePassed / attackSlideDuration;
+                    //     _movementVelocity = Vector3.Lerp(transform.forward * attackSlideSpeed, Vector3.zero, lerpTime);
+                    // }
 
                     if (_playerInput.MouseButtonDown && _characterController.isGrounded)
                     {
