@@ -155,12 +155,12 @@ public class Character : MonoBehaviour
                 {
                     // _movementVelocity = Vector3.zero;
 
-                    // if (Time.time < attackStartTime + attackSlideDuration)
-                    // {
-                    //     float timePassed = Time.time - attackStartTime;
-                    //     float lerpTime = timePassed / attackSlideDuration;
-                    //     _movementVelocity = Vector3.Lerp(transform.forward * attackSlideSpeed, Vector3.zero, lerpTime);
-                    // }
+                    if (Time.time < attackStartTime + attackSlideDuration)
+                    {
+                        float timePassed = Time.time - attackStartTime;
+                        float lerpTime = timePassed / attackSlideDuration;
+                        _movementVelocity = Vector3.Lerp(transform.forward * attackSlideSpeed, Vector3.zero, lerpTime);
+                    }
 
                     if (_playerInput.MouseButtonDown && _characterController.isGrounded)
                     {
@@ -172,7 +172,7 @@ public class Character : MonoBehaviour
                         {
                             _playerInput.MouseButtonDown = false;
                             SwitchStateTo(CharacterState.ATTACKING);
-                            CalculatePlayerMovement();
+                            // CalculatePlayerMovement();
                         }
                     }
                 }
@@ -180,10 +180,10 @@ public class Character : MonoBehaviour
             case CharacterState.DEAD:
                 return;
             case CharacterState.BEINGHIT:
-                if (impactOnCharacter.magnitude > 0.2f)
-                    _movementVelocity = impactOnCharacter * Time.deltaTime;
+                // if (impactOnCharacter.magnitude > 0.2f)
+                //     _movementVelocity = impactOnCharacter * Time.deltaTime;
 
-                impactOnCharacter = Vector3.Lerp(impactOnCharacter, Vector3.zero, Time.deltaTime * 5);
+                // impactOnCharacter = Vector3.Lerp(impactOnCharacter, Vector3.zero, Time.deltaTime * 5);
                 break;
             case CharacterState.SLIDE:
                 _movementVelocity = transform.forward * SlideSpeed * Time.deltaTime;
@@ -197,6 +197,11 @@ public class Character : MonoBehaviour
                 break;
         }
 
+        if (impactOnCharacter.magnitude > 0.2f)
+            _movementVelocity = impactOnCharacter * Time.deltaTime;
+
+        impactOnCharacter = Vector3.Lerp(impactOnCharacter, Vector3.zero, Time.deltaTime * 5);
+
         if (isPlayer)
         {
             if (_characterController.isGrounded == false)
@@ -208,6 +213,14 @@ public class Character : MonoBehaviour
 
             _characterController.Move(_movementVelocity);
             _movementVelocity = Vector3.zero;
+        }
+        else
+        {
+            if (currentState != CharacterState.NORMAL)
+            {
+                _characterController.Move(_movementVelocity);
+                _movementVelocity = Vector3.zero;
+            }
         }
     }
 
@@ -254,12 +267,21 @@ public class Character : MonoBehaviour
 
                 _animator.SetTrigger(AnimationTags.ATTACK_TRIGGER);
                 if (isPlayer)
+                {
                     attackStartTime = Time.time;
+                    RotateToCursor();
+                }
                 break;
             case CharacterState.DEAD:
                 _characterController.enabled = false;
                 _animator.SetTrigger(AnimationTags.DEAD_TRIGGER);
                 StartCoroutine(MaterialDissolve());
+
+                if (!isPlayer)
+                {
+                    SkinnedMeshRenderer mesh = GetComponentInChildren<SkinnedMeshRenderer>();
+                    mesh.gameObject.layer = 0;
+                }
                 break;
             case CharacterState.BEINGHIT:
                 _animator.SetTrigger(AnimationTags.BEING_HIT_TRIGGER);
@@ -319,6 +341,10 @@ public class Character : MonoBehaviour
         {
             SwitchStateTo(CharacterState.BEINGHIT);
             AddImpact(attackerPos, 10f);
+        }
+        else
+        {
+            AddImpact(attackerPos, 2.5f);
         }
     }
 
@@ -445,5 +471,30 @@ public class Character : MonoBehaviour
 
         _materialPropertyBlock.SetFloat("_enableDissolve", 0f);
         _skinnedMeshRenderer.SetPropertyBlock(_materialPropertyBlock);
+    }
+
+    void OnDrawGizmos()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, 1000, 1 << LayerMask.NameToLayer(Layers.CURSOR_TEST)))
+        {
+            Vector3 cursorPos = hit.point;
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(cursorPos, 1);
+        }
+    }
+
+    void RotateToCursor()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, 1000, 1 << LayerMask.NameToLayer(Layers.CURSOR_TEST)))
+        {
+            Vector3 cursorPos = hit.point;
+            transform.rotation = Quaternion.LookRotation(cursorPos - transform.position, Vector3.up);
+        }
     }
 }
