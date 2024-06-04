@@ -1,10 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    private Character playerCharacter;
+    [SerializeField]
+    private GameUIManager gameUIManager;
+    [HideInInspector]
+    public Character playerCharacter;
     private bool gameIsOver;
 
     void Awake()
@@ -14,12 +18,18 @@ public class GameManager : MonoBehaviour
 
     private void GameOver()
     {
-        Debug.Log("GAME OVER");
+        // Debug.Log("GAME OVER");
+
+        Time.timeScale = 1f;
+        gameUIManager.ShowGameOverUI();
     }
 
     public void GameIsFinshed()
     {
-        Debug.Log("GAME IS FINISH");
+        // Debug.Log("GAME IS FINISH");
+
+        Time.timeScale = 1f;
+        gameUIManager.ShowGameIsFinishUI();
     }
 
     // Update is called once per frame
@@ -28,10 +38,24 @@ public class GameManager : MonoBehaviour
         if (gameIsOver)
             return;
 
+        if (Input.GetKeyDown(KeyCode.Escape))
+            gameUIManager.TogglePauseUI();
+
         if (playerCharacter.currentState == Character.CharacterState.DEAD)
         {
             gameIsOver = true;
             GameOver();
         }
+    }
+
+    public void ReturnToMainMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(Scenes.MAIN_MENU);
+    }
+
+    public void Restart()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

@@ -20,7 +20,8 @@ public class Character : MonoBehaviour
 
     private Animator _animator;
 
-    private int Coin;
+    [HideInInspector]
+    public int Coin;
 
     //enemy
     public bool isPlayer = true;
